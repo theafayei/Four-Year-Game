@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sprite review · IT: The Four Year Game</title><style>*{box-sizing:border-box}body{margin:0;background:#111523;color:#f1eee8;font:15px/1.6 system-ui,sans-serif}main{max-width:1220px;margin:auto;padding:36px 24px}header{border-bottom:1px solid #3a4055;padding-bottom:22px;margin-bottom:26px}.eyebrow{color:#b1dfcb;font-size:12px;letter-spacing:3px;text-transform:uppercase}h1{font-size:32px;line-height:1.2;margin:8px 0}p{color:#b8bed1;margin:8px 0}button{background:#b1dfcb;color:#172c28;border:0;border-radius:6px;padding:10px 16px;font:inherit;cursor:pointer;margin-top:12px}.grid{display:grid;grid-template-columns:repeat(4,minmax(240px,1fr));gap:16px;min-width:1040px}.scroll{overflow-x:auto;padding-bottom:12px}.card{border:1px solid #41465c;border-radius:10px;overflow:hidden;background:#202638}.stage{display:flex;justify-content:center;align-items:center;padding:14px 0;background:repeating-conic-gradient(#242c40 0% 25%,#283147 0% 50%) 0 0/24px 24px}canvas{width:192px;height:272px;image-rendering:pixelated;image-rendering:crisp-edges}.caption{padding:14px 18px}h2{font-size:16px;margin:0}.caption p{font-size:13px;margin:3px 0}.tag{color:#b1dfcb;font-size:11px;letter-spacing:1px}footer{color:#aab2c8;font-size:13px;margin-top:18px}@media(max-width:600px){main{padding:24px 16px}h1{font-size:26px}}.npc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:20px 0}#npcReview{margin-bottom:40px}.npc-card{background:#27344a;padding:16px;border:2px solid #789795}.npc-card canvas{width:192px;height:272px}.npc-card h2{color:#f5d6a8}.npc-card p{font-size:13px;min-height:42px}#panelReview{width:576px;height:240px;max-width:100%;object-fit:contain;background:#27344a}</style></head>
+<body><main><section id="npcReview"><h1>Meet the campus cast</h1><p>New NPCs for your review. Each card shows idle and walking frames. The panel trio stands together below.</p><div id="npcGrid" class="npc-grid"></div><h2>The panel trio</h2><canvas id="panelReview" width="576" height="240" aria-label="Three panel members behind a long table"></canvas></section><header><div class="eyebrow">IT: The Four Year Game / Character study</div><h1>Four years. Eight looks.</h1><p>Boy on the top row, girl below. Compare each outfit at 8× size.</p><button id="motion" type="button"></button></header><div class="scroll"><div class="grid" aria-label="Eight character previews"></div></div><footer>24 × 32 pixels · two-frame, one-pixel idle bob · scroll sideways on smaller screens.<br>For feedback, name a character and year, such as “Girl, freshman,” and what you want changed.</footer></main><script src="js/sprites.js"></script><script>// Review-only sprite data: each row is 24 pixels, each sprite is 32 rows.
+// . = transparent; O = outline; H/h = hair; S/s = skin; P/p/L = clothing.
+// W = eyes/ID/highlights; E = pupils; m = mouth; t = eye bags;
+// B/b = bag; X = straps/lanyard; D/d = trousers; Q = shoes.
+const SPRITES = {
+  "boy": {
+    "freshman": [
+      "........................",
+      "........OOOOOOOO........",
+      "......OOHHHHHHHHOO......",
+      ".....OHHhhhhHHHHHHO.....",
+      "....OHhhhhHHHHHHHHO.....",
+      "....OHHHHHHHHHHHHHO.....",
+      "....OHHHHSSSSHHHHHO.....",
+      "....OHSSSSSSSSSSSHO.....",
+      "....OSSOOSSSSOOSSSO.....",
+      "....OsSWESSSSWESSsO.....",
+      "....OsSSSSSSSSSSSsO.....",
+      ".....OSSsSSmmSSsSSO.....",
+      "......OssSSSSSSssO......",
+      "........OOOOOOOO........",
+      "..........OOOO..........",
+      ".......OOOSsSOOO........",
+      ".......OBBOOOOBBO.......",
+      ".....OBPLPPPPPLPBO......",
+      ".....OBPXPPPPPXpBO......",
+      ".....OBPXPPPPPXpBO......",
+      ".....OSSPPPPPPppSSO.....",
+      ".....OSsPPPPPPppSsO.....",
+      "......OOPPPPPPppOO......",
+      ".......OPPPPPPppO.......",
+      ".......OOOOOOOOOO.......",
+      ".......ODDDddDDDO.......",
+      ".......ODDdOOdddO.......",
+      ".......ODDd..ODdO.......",
+      ".......ODDd..ODdO.......",
+      "......OQQQO..OQQQO......",
+      "......OQWQO..OQWQO......",
+      "......OOOOO..OOOOO......"
+    ],
+    "sophomore": [
+      "........................",
+      "........OOOOOOOO........",
+      "......OOHHHHHHHHOO......",
+      ".....OHHhhhhHHHHHHO.....",
+      "....OHhhhhHHHHHHHHO.....",
+      "....OHHHHHHHHHHHHHO.....",
+      "....OHHHHSSSSHHHHHO.....",
+      "....OHSSSSSSSSSSSHO.....",
+      "....OSSOOSSSSOOSSSO.....",
+      "....OsSWESSSSWESSsO.....",
+      "....OsSSSSSSSSSSSsO.....",
+      ".....OSSsSSmmSSsSSO.....",
+      "......OssSSSSSSssO......",
+      "........OOOOOOOO........",
+      "..........OOOO..........",
+      ".......OOOSsSOOO........",
+      ".......OLPOOOPpO........",
+      "......OPLPPPPPPpO.......",
+      ".....OPPLWPPWPPppO......",
+      ".....OPPLWPPWPPppO......",
+      ".....OPpPPPPPPPppO......",
+      ".....OSsPPPppPPPSSO.....",
+      ".....OSsPpLLLLpPSsO.....",
+      "......OOPppppppOO.......",
+      ".......OOOOOOOOOO.......",
+      ".......ODDDddDDDO.......",
+      ".......ODDdOOdddO.......",
+      ".......ODDd..ODdO.......",
+      ".......ODDd..ODdO.......",
+      "......OQQQO..OQQQO......",
+      "......OQWQO..OQWQO......",
+      "......OOOOO..OOOOO......"
+    ],
+    "junior": [
+      "........................",
+      "........OOOOOOOO........",
+      "......OOHHHHHHHHOO......",
+      ".....OHHhhhhHHHHHHO.....",
+      "....OHhhhhHHHHHHHHO.....",
+      "....OHHHHHHHHHHHHHO.....",
+      "....OHHHHSSSSHHHHHO.....",
+      "....OHSSSSSSSSSSSHO.....",
+      "....OSSOOSSSSOOSSSO.....",
+      "....OsSWESSSSWESSsO.....",
+      "....OsSSSSSSSSSSSsO.....",
+      ".....OSSsSSmmSSsSSO.....",
+      "......OssSSSSSSssO......",
+      "........OOOOOOOO........",
+      "..........OOOO..........",
+      ".......OOOSsSOOO........",
+      ".......OLPOOOPpO........",
+      "......OPLXPPPLXpO.......",
+      ".....OPPLXPPXPpppO......",
+      ".....OPPPPXWPPpppO......",
+      ".....OSsPPWWPPppSSO.....",
+      ".....OSsPPWWPXppSsO.....",
+      "......OOPPPPPPXXOO......",
+      ".......OPPPPPPOBBO......",
+      ".......OOOOOOOBbbBO.....",
+      ".......ODDDddOBbbBO.....",
+      ".......ODDdOOOBbbBO.....",
+      ".......ODDd..OOOOO......",
+      ".......ODDd..ODdO.......",
+      "......OQQQO..OQQQO......",
+      "......OQWQO..OQWQO......",
+      "......OOOOO..OOOOO......"
+    ],
+    "senior": [
+      "........................",
+      "........OOOOOOOO........",
+      "......OOHHHHHHHHOO......",
+      ".....OHHhhhhHHHHHHO.....",
+      "....OHhhhhHHHHHHHHO.....",
+      "....OHHHHHHHHHHHHHO.....",
+      "....OHHHHSSSSHHHHHO.....",
+      "....OHSSSSSSSSSSSHO.....",
+      "....OSSOOSSSSOOSSSO.....",
+      "....OsSWESSSSWESSsO.....",
+      "....OsSttSSSSttSSsO.....",
+      ".....OSSsSSmmSSsSSO.....",
+      "......OssSSSSSSssO......",
+      "........OOOOOOOO........",
+      "..........OOOO..........",
+      ".......OOOSsSOOO........",
+      ".......OLLSsSLLpO.......",
+      "......OPPLPOPPLppO......",
+      ".....OPPLXPOPXPppO......",
+      ".....OPPPPXWXPPppO......",
+      ".....OSsPPWWPPppSSO.....",
+      ".....OSsPPWWPPppSsO.....",
+      "......OOPPPPPPppOO......",
+      ".......OPPPPPPppO.......",
+      ".......OOOOOOOOOO.......",
+      ".......ODDDddDDDO.......",
+      ".......ODDdOOdddO.......",
+      ".......ODDd..ODdO.......",
+      ".......ODDd..ODdO.......",
+      "......OQQQO..OQQQO......",
+      "......OQWQO..OQWQO......",
+      "......OOOOO..OOOOO......"
+    ]
+  },
+  "girl": {
+    "freshman": [
+      "........................",
+      "........OOOOOOOO........",
+      "......OOHHHHHHHHOO......",
+      ".....OHHhhhhHHHHHHO.....",
+      "....OHhhhhHHHHHHHHO.....",
+      "....OHHHHHHHHHHHHHO.....",
+      "....OHHHHSSSSSHHHHO.....",
+      "....OHHSSSSSSSSSHHO.....",
+      ".....OHSOOSSSSOOSHO.....",
+      ".....OHsWESSSSWEsHO.....",
+      ".....OHsSSSSSSSSsHO.....",
+      ".....OHSSsSmmSsSSHO.....",
+      ".....OHHssSSSSssHHO.....",
+      ".....OHHOOOOOOOOHHO.....",
+      "......OHHOSsSOHHO.......",
+      "......OHHOOsOOHHO.......",
+      ".......OBBOOOOBBO.......",
+      ".....OBPLPPPPPLPBO......",
+      ".....OBPXPPPPPXpBO......",
+      ".....OBPXPPPPPXpBO......",
+      ".....OSSPPPPPPppSSO.....",
+      ".....OSsPPPPPPppSsO.....",
+      "......OOPPPPPPppOO......",
+      ".......OPPPPPPppO.......",
+      ".......OOOOOOOOOO.......",
+      ".......ODDDddDDDO.......",
+      ".......ODDdOOdddO.......",
+      ".......ODDd..ODdO.......",
+      ".......ODDd..ODdO.......",
+      "......OQQQO..OQQQO......",
+      "......OQWQO..OQWQO......",
+      "......OOOOO..OOOOO......"
+    ],
+    "sophomore": [
+      "........................",
+      "........OOOOOOOO........",
+      "......OOHHHHHHHHOO......",
+      ".....OHHhhhhHHHHHHO.....",
+      "....OHhhhhHHHHHHHHO.....",
+      "....OHHHHHHHHHHHHHO.....",
+      "....OHHHHSSSSSHHHHO.....",
+      "....OHHSSSSSSSSSHHO.....",
+      ".....OHSOOSSSSOOSHO.....",
+      ".....OHsWESSSSWEsHO.....",
+      ".....OHsSSSSSSSSsHO.....",
+      ".....OHSSsSmmSsSSHO.....",
+      ".....OHHssSSSSssHHO.....",
+      ".....OHHOOOOOOOOHHO.....",
+      "......OHHOSsSOHHO.......",
+      "......OHHOOsOOHHO.......",
+      ".......OLPOOOPpO........",
+      "......OPLPPPPPPpO.......",
+      ".....OPPLWPPWPPppO......",
+      ".....OPPLWPPWPPppO......",
+      ".....OPpPPPPPPPppO......",
+      ".....OSsPPPppPPPSSO.....",
+      ".....OSsPpLLLLpPSsO.....",
+      "......OOPppppppOO.......",
+      ".......OOOOOOOOOO.......",
+      ".......ODDDddDDDO.......",
+      ".......ODDdOOdddO.......",
+      ".......ODDd..ODdO.......",
+      ".......ODDd..ODdO.......",
+      "......OQQQO..OQQQO......",
+      "......OQWQO..OQWQO......",
+      "......OOOOO..OOOOO......"
+    ],
+    "junior": [
+      "........................",
+      "........OOOOOOOO........",
+      "......OOHHHHHHHHOO......",
+      ".....OHHhhhhHHHHHHO.....",
+      "....OHhhhhHHHHHHHHO.....",
+      "....OHHHHHHHHHHHHHO.....",
+      "....OHHHHSSSSSHHHHO.....",
+      "....OHHSSSSSSSSSHHO.....",
+      ".....OHSOOSSSSOOSHO.....",
+      ".....OHsWESSSSWEsHO.....",
+      ".....OHsSSSSSSSSsHO.....",
+      ".....OHSSsSmmSsSSHO.....",
+      ".....OHHssSSSSssHHO.....",
+      ".....OHHOOOOOOOOHHO.....",
+      "......OHHOSsSOHHO.......",
+      "......OHHOOsOOHHO.......",
+      ".......OLPOOOPpO........",
+      "......OPLXPPPLXpO.......",
+      ".....OPPLXPPXPpppO......",
+      ".....OPPPPXWPPpppO......",
+      ".....OSsPPWWPPppSSO.....",
+      ".....OSsPPWWPXppSsO.....",
+      "......OOPPPPPPXXOO......",
+      ".......OPPPPPPOBBO......",
+      ".......OOOOOOOBbbBO.....",
+      ".......ODDDddOBbbBO.....",
+      ".......ODDdOOOBbbBO.....",
+      ".......ODDd..OOOOO......",
+      ".......ODDd..ODdO.......",
+      "......OQQQO..OQQQO......",
+      "......OQWQO..OQWQO......",
+      "......OOOOO..OOOOO......"
+    ],
+    "senior": [
+      "........................",
+      "........OOOOOOOO........",
+      "......OOHHHHHHHHOO......",
+      ".....OHHhhhhHHHHHHO.....",
+      "....OHhhhhHHHHHHHHO.....",
+      "....OHHHHHHHHHHHHHO.....",
+      "....OHHHHSSSSSHHHHO.....",
+      "....OHHSSSSSSSSSHHO.....",
+      ".....OHSOOSSSSOOSHO.....",
+      ".....OHsWESSSSWEsHO.....",
+      ".....OHsttSSSSttsHO.....",
+      ".....OHSSsSmmSsSSHO.....",
+      ".....OHHssSSSSssHHO.....",
+      ".....OHHOOOOOOOOHHO.....",
+      "......OHHOSsSOHHO.......",
+      "......OHHOOsOOHHO.......",
+      ".......OLLSsSLLpO.......",
+      "......OPPLPOPPLppO......",
+      ".....OPPLXPOPXPppO......",
+      ".....OPPPPXWXPPppO......",
+      ".....OSsPPWWPPppSSO.....",
+      ".....OSsPPWWPPppSsO.....",
+      "......OOPPPPPPppOO......",
+      ".......OPPPPPPppO.......",
+      ".......OOOOOOOOOO.......",
+      ".......ODDDddDDDO.......",
+      ".......ODDdOOdddO.......",
+      ".......ODDd..ODdO.......",
+      ".......ODDd..ODdO.......",
+      "......OQQQO..OQQQO......",
+      "......OQWQO..OQWQO......",
+      "......OOOOO..OOOOO......"
+    ]
+  }
+};
+const PALETTE = {
+  "O": "#191d32",
+  "H": "#493448",
+  "h": "#795068",
+  "S": "#f5c7a0",
+  "s": "#d9957d",
+  "W": "#fff5db",
+  "E": "#262137",
+  "m": "#a75d68",
+  "t": "#bd827e",
+  "P": "#58bca7",
+  "p": "#31867f",
+  "L": "#a2e0c3",
+  "B": "#b97642",
+  "b": "#805239",
+  "X": "#e5b876",
+  "D": "#465679",
+  "d": "#303c5e",
+  "Q": "#34405d"
+};
+const COLORWAYS = {
+  "boy": {
+    "freshman": [
+      "#58bca7",
+      "#31867f",
+      "#a2e0c3"
+    ],
+    "sophomore": [
+      "#df965b",
+      "#b86849",
+      "#ffd091"
+    ],
+    "junior": [
+      "#6da5d7",
+      "#4777ae",
+      "#acd5ef"
+    ],
+    "senior": [
+      "#aca2da",
+      "#756baf",
+      "#d9d1f3"
+    ]
+  },
+  "girl": {
+    "freshman": [
+      "#ed9b88",
+      "#b7656c",
+      "#ffd0af"
+    ],
+    "sophomore": [
+      "#aa99d5",
+      "#7966a4",
+      "#dacbf2"
+    ],
+    "junior": [
+      "#69b9c7",
+      "#438897",
+      "#afe2e1"
+    ],
+    "senior": [
+      "#d4b46c",
+      "#a17f48",
+      "#f3dfa3"
+    ]
+  }
+};
+const DESCRIPTIONS = {freshman:'Plain shirt + backpack', sophomore:'Hoodie + drawstrings', junior:'ID lanyard + laptop bag', senior:'Polo + ID + tired eyes'};
+const previews = [];
+const scale = 8; // Integer canvas scaling keeps every source pixel crisp.
+for (const [character, looks] of Object.entries(SPRITES)) {
+  for (const [outfit, rows] of Object.entries(looks)) {
+    if (rows.length !== 32 || rows.some(row => row.length !== 24)) throw new Error('Invalid sprite dimensions');
+    const colors = {...PALETTE};
+    [colors.P, colors.p, colors.L] = COLORWAYS[character][outfit];
+    if (character === 'boy') { colors.H = '#30324a'; colors.h = '#535875'; }
+    const card = document.createElement('article');
+    card.className = 'card';
+    const title = character[0].toUpperCase() + character.slice(1) + ' · ' + outfit[0].toUpperCase() + outfit.slice(1);
+    card.innerHTML = '<div class="stage"><canvas width="192" height="272" role="img"></canvas></div><div class="caption"><div class="tag">YEAR ' + (Object.keys(looks).indexOf(outfit) + 1) + '</div><h2>' + title + '</h2><p>' + DESCRIPTIONS[outfit] + '</p></div>';
+    document.querySelector('.grid').appendChild(card);
+    const canvas = card.querySelector('canvas');
+    canvas.setAttribute('aria-label', title + ': ' + DESCRIPTIONS[outfit]);
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    previews.push({ctx, rows, colors});
+  }
+}
+function draw(frame) {
+  for (const {ctx, rows, colors} of previews) {
+    ctx.clearRect(0, 0, 192, 272);
+    ctx.fillStyle = '#151b2d';
+    ctx.fillRect(6 * scale, 33 * scale, 12 * scale, scale);
+    rows.forEach((row, y) => [...row].forEach((letter, x) => {
+      if (letter === '.') return;
+      if (!colors[letter]) throw new Error('Unknown palette letter: ' + letter);
+      ctx.fillStyle = colors[letter];
+      ctx.fillRect(x * scale, (y + frame) * scale, scale, scale);
+    }));
+  }
+}
+const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+let playing = !motionPreference.matches;
+let frame = 0;
+const toggle = document.getElementById('motion');
+function updateToggle() { toggle.textContent = playing ? 'Pause idle animation' : 'Play idle animation'; toggle.setAttribute('aria-pressed', String(playing)); }
+toggle.addEventListener('click', () => { playing = !playing; frame = 0; draw(frame); updateToggle(); });
+motionPreference.addEventListener('change', event => { playing = !event.matches; frame = 0; draw(frame); updateToggle(); });
+setInterval(() => { if (playing) { frame = 1 - frame; draw(frame); } }, 550);
+updateToggle();
+draw(0);
+</script><script>
+const npcCards = [];
+for (const [id, npc] of Object.entries(NPC_SPRITES)) {
+  const card = document.createElement('article');
+  card.className = 'npc-card';
+  card.innerHTML = '<h2></h2><canvas width="192" height="272" role="img"></canvas><p></p>';
+  card.querySelector('h2').textContent = npc.label;
+  card.querySelector('p').textContent = npc.description;
+  const canvas = card.querySelector('canvas');
+  canvas.setAttribute('aria-label', npc.label + ', idle and walk preview');
+  document.getElementById('npcGrid').appendChild(card);
+  npcCards.push({id,canvas});
+}
+let npcTick = 0;
+function paintNPCReview() {
+  for (const {id,canvas} of npcCards) {
+    const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,192,272);
+    drawNPC(ctx,id,0,0,8,npcTick%4,npcTick%12>=4);
+  }
+  const ctx = document.getElementById('panelReview').getContext('2d');
+  ctx.clearRect(0,0,576,240);
+  ['panel1','panel2','panel3'].forEach((id,i)=>drawNPC(ctx,id,78+i*144,8,4,npcTick%2));
+  ctx.fillStyle='#966e62';ctx.fillRect(38,116,500,24);
+  ctx.fillStyle='#d9b38a';ctx.fillRect(38,110,500,8);
+  ctx.fillStyle='#68545a';ctx.fillRect(54,140,16,54);ctx.fillRect(506,140,16,54);
+}
+paintNPCReview();
+setInterval(()=>{if(playing){npcTick+=1;paintNPCReview();}},300);
+</script></body>
+</html>

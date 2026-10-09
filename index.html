@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IT: The Four Year Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="top-header">
+        <div id="titleBanner">IT: The Four Year Game</div>
+        <button id="muteButton" type="button" aria-label="Mute sound">🔊</button>
+      </header>
+
+      <section id="startScreen" class="screen active">
+        <div class="panel intro-panel">
+          <h1>IT: The Four Year Game</h1>
+          <p>Survive four years of system admin classes, all-nighters, group projects, and one very memorable final defense.</p>
+          <button id="startButton" type="button">Start</button>
+          <button id="continueButton" type="button" class="secondary">Continue</button>
+        </div>
+      </section>
+
+      <section id="characterScreen" class="screen hidden">
+        <div class="panel character-panel">
+          <h2>Create Your Character</h2>
+          <label for="playerName">Name</label>
+          <input id="playerName" type="text" maxlength="12" value="Student" />
+
+          <div class="gender-choice">
+            <label>
+              <input type="radio" name="character" value="boy" checked />
+              Boy
+            </label>
+            <label>
+              <input type="radio" name="character" value="girl" />
+              Girl
+            </label>
+          </div>
+
+          <div class="sprite-preview-wrap">
+            <canvas id="characterPreview" width="144" height="204" role="img" aria-label="Selected character"></canvas>
+          </div>
+
+          <button id="beginGameButton" type="button">Begin</button>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="screen hidden">
+        <div class="hud">
+          <div class="hud-row">
+            <div class="year-label">YEAR <span id="yearDisplay">1</span></div>
+            <div class="name-label"><span id="playerNameDisplay">Student</span></div>
+            <span class="hud-caption">THE CAMPUS YEARS</span>
+          </div>
+          <div class="stats" id="statsContainer" aria-label="Your stats"></div>
+          <div id="statTooltip" class="stat-tooltip hidden" role="tooltip"></div>
+        </div>
+        <div class="scene-shell">
+          <div class="scene-caption"><span id="sceneYearLabel">Bright morning</span><span id="sceneStatus" role="status">On campus</span></div>
+          <div id="sceneViewport" class="scene-viewport">
+            <canvas id="sceneCanvas" width="960" height="432" role="img" aria-label="Your character on the school campus"></canvas>
+          </div>
+        </div>
+        <div class="dialog-space">
+          <section id="eventDialog" class="pixel-dialog hidden" role="dialog" aria-modal="false" aria-labelledby="dialogSpeaker" tabindex="-1">
+            <div class="dialog-topline"><span id="dialogSpeaker" class="speaker-tag">Campus life</span><button id="finishTextButton" type="button" class="text-skip hidden">Show text</button></div>
+            <div class="story-panel" id="eventPanel"></div>
+          </section>
+        </div>
+      </section>
+
+      <dialog id="yearTransition" class="year-transition" aria-labelledby="yearTitle">
+        <p id="yearComplete" class="year-complete"></p>
+        <h2 id="yearTitle"></h2><p id="yearSubtitle"></p>
+        <canvas id="yearSprite" width="96" height="136" aria-label="Your new outfit"></canvas>
+        <div id="yearRecap" class="year-recap"></div>
+        <button id="yearContinue" type="button">Start the new year</button>
+        <button id="yearMute" type="button" class="secondary">Mute sound</button>
+      </dialog>
+      <section id="endingScreen" class="screen hidden">
+        <div class="panel ending-panel" id="endingPanel"></div>
+      </section>
+    </div>
+
+    <script src="js/sprites.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/terminal.js"></script>
+    <script src="js/questions.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/bosses.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
