@@ -272,24 +272,38 @@ function getEndingForStats(stats, result) {
   return chosen;
 }
 
-// Scene direction stays data-driven alongside the events.
+// Scene direction stays data-driven alongside the events (presentation only: no story text or effects live here).
+//   room    where it happens (see SETTINGS in settings.js)      variant  small changes to that room
+//   npcs    who is standing with the student                    emote    speech-bubble icon above the student
+//   theme   look of the dialog box: social | paper | terminal   term     flavour lines for terminal-style choices
 const EVENT_SCENES = {
-  'y1-1': {room:'courtyard', npcs:[], prop:'wifi'},
-  'y1-2': {room:'courtyard', npcs:['studious']},
-  'y1-3': {room:'courtyard', npcs:['officer'], banner:'CAST DAY'},
-  'y2-1': {room:'courtyard', npcs:['clown'], ghost:true},
-  'y2-2': {room:'courtyard', npcs:['client']},
-  'y2-3': {room:'nightDesk', npcs:[]},
-  'y3-1': {room:'nightDesk', npcs:[]},
-  'y3-2': {room:'lab', npcs:['gamer'], prop:'router'},
-  'y3-3': {room:'lab', npcs:['studious'], prop:'note'},
-  'summer-1': {room:'courtyard', npcs:['studious','clown','gamer','officer']},
-  'y4-1': {room:'panel', npcs:['panel1','panel2','panel3']},
-  'y4-2': {room:'classroom', npcs:['gamer'], prop:'sweat'},
-  'y4-3': {room:'panel', npcs:['client','panel1','panel2','panel3']}
+  'y1-1': {room: 'dorm', variant: 'router', npcs: [], emote: 'nowifi', theme: 'terminal',
+    term: {cmd: 'ping -c 1 8.8.8.8', out: ['ping: connect: Network is unreachable']}},
+  'y1-2': {room: 'courtyard', npcs: ['studious'], emote: 'question', theme: 'social'},
+  'y1-3': {room: 'courtyard', variant: 'cast', npcs: ['officer'], emote: 'exclaim', theme: 'social'},
+  'y2-1': {room: 'courtyard', npcs: ['clown'], ghost: true, emote: 'question', theme: 'social'},
+  'y2-2': {room: 'cafe', npcs: ['client'], emote: 'coffee', theme: 'social'},
+  'y2-3': {room: 'dorm', variant: 'clock', npcs: [], emote: 'zzz', theme: 'terminal',
+    term: {cmd: 'date +%R && echo "due: 08:00"', out: ['02:07', 'due: 08:00']}},
+  'y3-1': {room: 'dorm', variant: 'error', npcs: [], emote: 'anger', theme: 'terminal',
+    term: {cmd: 'curl -I https://capstone.example.com', out: ['HTTP/1.1 500 Internal Server Error']}},
+  'y3-2': {room: 'lab', variant: 'router', npcs: ['gamer'], emote: 'question', theme: 'terminal',
+    term: {cmd: 'ping 192.168.1.1', out: ['Request timed out.', 'Request timed out.']}},
+  'y3-3': {room: 'lab', variant: 'note', npcs: ['studious'], emote: 'exclaim', theme: 'social'},
+  'summer-1': {room: 'courtyard', summer: true, npcs: ['studious', 'clown', 'gamer', 'officer'], emote: 'sparkle', theme: 'social'},
+  'y4-1': {room: 'panel', npcs: ['panel1', 'panel2', 'panel3'], emote: 'sweat', theme: 'social'},
+  'y4-2': {room: 'classroom', variant: 'exam', npcs: ['gamer'], emote: 'sweat', theme: 'paper'},
+  'y4-3': {room: 'panel', variant: 'client', npcs: ['client', 'panel1', 'panel2', 'panel3'], emote: 'question', theme: 'social'}
+};
+const BOSS_SCENES = {
+  logicGateMidterm: {room: 'classroom', variant: 'exam', npcs: ['teacher'], theme: 'paper'},
+  databaseDown: {room: 'lab', npcs: [], emote: 'exclaim', theme: 'terminal'},
+  serverDown: {room: 'lab', variant: 'alarm', npcs: [], emote: 'exclaim', theme: 'terminal'},
+  clientServerDown: {room: 'serverRoom', variant: 'disk', npcs: [], emote: 'exclaim', theme: 'terminal'},
+  finalDefense: {room: 'dorm', variant: 'capstone', npcs: [], emote: 'sweat', theme: 'terminal'}
 };
 function getEventScene(item) {
-  if (item?.type === 'boss') return {room:item.bossId === 'logicGateMidterm' ? 'classroom' : 'lab', npcs:item.bossId === 'logicGateMidterm' ? ['teacher'] : [], terminal:item.bossId !== 'logicGateMidterm'};
-  if (item?.event?.type === 'skill') return {room:'classroom', npcs:['teacher'], exam:true};
-  return EVENT_SCENES[item?.event?.id] || {room:'courtyard', npcs:[]};
+  if (item?.type === 'boss') return {npcs: [], theme: 'terminal', ...(BOSS_SCENES[item.bossId] || {room: 'lab'})};
+  if (item?.event?.type === 'skill') return {room: 'classroom', variant: 'exam', npcs: ['teacher'], theme: 'paper'};
+  return {npcs: [], theme: 'social', ...(EVENT_SCENES[item?.event?.id] || {room: 'courtyard'})};
 }

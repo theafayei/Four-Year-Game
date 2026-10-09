@@ -62,6 +62,16 @@ class SoundEngine {
   click() {
     this.beep(440, 0.05, 'square', 0.04);
   }
+
+  // Soft footstep tick while the student walks, and a little pop for emotes.
+  step() {
+    this.beep(110 + Math.random() * 30, 0.03, 'triangle', 0.025);
+  }
+
+  pop() {
+    this.beep(700, 0.04, 'square', 0.03);
+    setTimeout(() => this.beep(1000, 0.05, 'square', 0.03), 45);
+  }
 }
 
 const soundEngine = new SoundEngine();

@@ -396,7 +396,7 @@ setInterval(() => {
   }
 }, 550);
 
-// Phase 1: original campus tiles and HUD icons. All art uses text grids.
+// HUD icons and small pixel helpers. All art uses text grids.
 function drawPixelGrid(ctx, rows, palette, left, top, scale = 1) {
   ctx.imageSmoothingEnabled = false;
   rows.forEach((row, y) => [...row].forEach((pixel, x) => {
@@ -405,82 +405,6 @@ function drawPixelGrid(ctx, rows, palette, left, top, scale = 1) {
     ctx.fillRect(Math.round(left) + x * scale, Math.round(top) + y * scale, scale, scale);
   }));
 }
-
-const CAMPUS_TILES = {
-  cloud: [
-    '.........WWWWW..........', '......WWWWWWWWWW........',
-    '....WWWWWWWWWWWWWW......', '..WWWWWWWWWWWWWWWWWWWW..',
-    '.WWWWWWWWWWWWWWWWWWWWWW.', '..cccccccccccccccccccc..'
-  ],
-  school: [
-    '................RRRRRRRR................',
-    '...............RRRRRRRRRR...............',
-    '..............RRRRRRRRRRRR..............',
-    '.............RRRRRRRRRRRRRR.............',
-    '..............BBBBBBBBBBBB..............',
-    '..RRRRRRRRRRRRBBBBBWWBBBBBRRRRRRRRRRRR..',
-    '.RRRRRRRRRRRRRBBBBBWWBBBBBRRRRRRRRRRRRR.',
-    '..BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB..',
-    '..BLLLLBLLLLBBBBBBWWWWBBBBBBLLLLBLLLLB..',
-    '..BLwwLBLwwLBBBBBBWDDWBBBBBBLwwLBLwwLB..',
-    '..BLLLLBLLLLBBBBBBWWWWBBBBBBLLLLBLLLLB..',
-    '..BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB..',
-    '..bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb..',
-    '..BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB..',
-    '..BLLLLBLLLLBBBBBBBBBBBBBBBBLLLLBLLLLB..',
-    '..BLwwLBLwwLBBBBBBBBBBBBBBBBLwwLBLwwLB..',
-    '..BLLLLBLLLLBBBBBBBBBBBBBBBBLLLLBLLLLB..',
-    '..BBBBBBBBBBBBBBBbbbbbbBBBBBBBBBBBBBBB..',
-    '..BBBBBBBBBBBBBBBBDDDDBBBBBBBBBBBBBBBB..',
-    '..BBBBBBBBBBBBBBBBDDDDBBBBBBBBBBBBBBBB..',
-    '..BBBBBBBBBBBBBBBBWDDWBBBBBBBBBBBBBBBB..',
-    '..BBBBBBBBBBBBBBBBDDDDBBBBBBBBBBBBBBBB..',
-    '.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.',
-    'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
-  ],
-  tree: [
-    '.......gggggg.......', '.....ggGGGGgggg.....',
-    '....gGGGGGGGGggg....', '..ggGGGGGGGGGGgggg..',
-    '.gGGGGGGGGGGGGGGggg.', 'ggGGGGGGGGGGGGGGgggg',
-    'ggGGGGGGGGGGGGGggggg', '.ggGGGGGGGGGGgggggg.',
-    '..ggggGGGGGggggggg..', '....ggggTTgggggg....',
-    '........TtTT........', '........TtTT........',
-    '........TtTT........', '.......TTtTTT.......'
-  ],
-  fence: [
-    '.F......F.......', '.F......F.......',
-    'FFFFFFFFFFFFFFFF', '.f......f.......',
-    '.f......f.......', 'ffffffffffffffff',
-    '.f......f.......', '.f......f.......'
-  ],
-  path: [
-    'eeeeeeeeeeeeeeee', 'PPPPPPPPPPPPPPPP',
-    'PPPPpPPPPPPPPPPP', 'PPPPPPPPPPPPPPPP',
-    'PPPPPPPPPPPPpPPP', 'PPPPPPPPPPPPPPPP',
-    'PPPPPPPPPPPPPPPP', 'PPpPPPPPPPPPPPPP',
-    'PPPPPPPPPPPPPPPP', 'pppppppppppppppp'
-  ],
-  star: ['..W..', '..W..', 'WWWWW', '..W..', '..W..']
-};
-
-const CAMPUS_THEMES = {
-  1: {name: 'Bright morning', sky: '#91cddd', horizon: '#c5e5dd', grass: '#6eae79',
-    W: '#fff5db', c: '#d4e8e3', R: '#678392', B: '#e0cda7', b: '#ab9e88',
-    L: '#f4e8ce', w: '#75adb7', D: '#536e80', G: '#79b96d', g: '#448a62',
-    T: '#665d50', t: '#9b8461', F: '#e3dcc3', f: '#abb8a4', P: '#d8bc91', p: '#c5a57f', e: '#ecdbb5'},
-  2: {name: 'Golden afternoon', sky: '#e4ba87', horizon: '#f0d5a1', grass: '#9fa567',
-    W: '#fff0ca', c: '#e9c29b', R: '#817883', B: '#e8bd8c', b: '#b48e77',
-    L: '#ffdbad', w: '#978f9b', D: '#645772', G: '#b2b361', g: '#788e58',
-    T: '#765945', t: '#ae7e54', F: '#ebd0a0', f: '#b69b7d', P: '#d6ae80', p: '#bd926b', e: '#f3d2a0'},
-  3: {name: 'Sunset', sky: '#a178aa', horizon: '#efaa91', grass: '#776c86',
-    W: '#ffd6b1', c: '#d99d9e', R: '#5b567e', B: '#bf9d9a', b: '#8a788b',
-    L: '#dfbec0', w: '#f4ca91', D: '#4d4568', G: '#887b96', g: '#575b77',
-    T: '#4f455d', t: '#857084', F: '#c1a5af', f: '#867f9c', P: '#af8790', p: '#916e84', e: '#d4aaa0'},
-  4: {name: 'Night campus', sky: '#1f294b', horizon: '#394568', grass: '#3b5862',
-    W: '#fff0b5', c: '#394568', R: '#343c5b', B: '#65718a', b: '#45516f',
-    L: '#b8a385', w: '#ffe39c', D: '#29354f', G: '#456b70', g: '#2b4c5b',
-    T: '#283747', t: '#516171', F: '#899aab', f: '#5c718a', P: '#63718a', p: '#4e5d79', e: '#8d9bb1'}
-};
 
 const STAT_ICON_GRIDS = {
   grades: ['............', '.OOOOOOOOOO.', '.OBBBBOWWWO.', '.OBLBBOWWWO.', '.OBLBBOWWWO.', '.OBBBBOWWWO.', '.OBBBBOWWWO.', '.OBBBBOWWWO.', '.OBBBBOWWWO.', '.OOOOOOOOOO.', '..OOOOOOOO..', '............'],
@@ -518,18 +442,6 @@ function getWalkingSpriteData(character, year, frame) {
   }
   return rows;
 }
-function drawScenePlayer(ctx, character, year, left, top, walking, frame) {
-  const gender = SPRITE_LOOKS[character] ? character : 'boy';
-  const colors = {...SPRITE_PALETTE};
-  [colors.P, colors.p, colors.L] = SPRITE_COLORWAYS[gender][getSpriteLook(year)];
-  if (gender === 'boy') { colors.H = '#30324a'; colors.h = '#535875'; }
-  const rows = walking ? getWalkingSpriteData(gender, year, frame) : getSpriteData(gender, year);
-  const bob = walking ? frame % 2 : frame % 2;
-  ctx.fillStyle = '#283c4c';
-  ctx.fillRect(left + 12, top + 65, 24, 2);
-  drawPixelGrid(ctx, rows, colors, left, top + bob, 2);
-}
-
 // NPC review artwork. Not placed into gameplay until the user approves the review.
 const NPC_SPRITES = {
   "teacher": {
@@ -1141,29 +1053,4 @@ function drawNPC(ctx, id, left, top, scale = 2, frame = 0, walking = false) {
   if (id === 'ghost') ctx.globalAlpha = 0.2 + (1 - frame / 4) * 0.45;
   drawPixelGrid(ctx, rows, npc.palette, left, top + (frame % 2) * scale, scale);
   ctx.restore();
-}
-
-// Original room furniture and courtyard props, drawn with the same grid renderer.
-const PROP_PALETTE = {O:'#514a5d',W:'#fff2d2',B:'#7cb6b9',b:'#55878f',T:'#b78469',t:'#815f59',G:'#71a679',g:'#4e806a',P:'#e99a9c',Y:'#edc477',L:'#c5dac0',D:'#36556b',C:'#97ddd9'};
-const PROP_TILES = {
-  desk:['................','..TTTTTTTTTTTT..','.TTTTTTTTTTTTTT.','.tttttttttttttt.','..t..........t..','..t..........t..','..t..........t..','..t..........t..'],
-  chair:['.OOOOOO.','.OBBBBO.','.OBBBBO.','.OBBBBO.','.OOOOOO.','.T....T.','TTTTTTTT','.t....t.','.t....t.'],
-  computer:['OOOOOOOOOOOO','OCCCCCCCCCCO','OCDDDDDDDCCO','OCCCCCCCCCCO','OCDDDDDCCCCO','OCCCCCCCCCCO','OOOOOOOOOOOO','.....OO.....','...OOOOOO...'],
-  board:['TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT','TGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGT','TGWWWWWWWWGGWWWWWGGGGGGGGGGGGGGT','TGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGT','TGWWWGGGWWWWWWGGGWWWWWGGGGGGGGGGT','TGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGT','TGWWWGGGWWWWWGGGGGGGGGGGGGGGGGGT','TGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGT','TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT','tttttttttttttttttttttttttttttttt'],
-  plant:['.....GG.....','..GG.Gg.GG..','.GGGGGgGGGG.','..ggGGgGgg..','.....gg.....','...TTTTTT...','...TPPPTT...','....TTTT....'],
-  shelf:['TTTTTTTTTTTT','TBWYPBWYWWBT','TBWYPBWYWWBT','TTTTTTTTTTTT','TYBWBWYBPWYT','TYBWBWYBPWYT','TTTTTTTTTTTT','T..........T'],
-  clock:['..OOOO..','.OWWWWO.','OWWWOWWO','OWWWOWWO','OWWWOOWO','OWWWWWWO','.OWWWWO.','..OOOO..'],
-  coffee:['.WWWWWW..','.WTTTTWOW','.WTTTTWOW','.WTTTTWW.','..WWWW...','WWWWWWWW.'],
-  router:['.O......O.','.O......O.','OOOOOOOOOO','OBBBBBBBBO','OBYBYBWBBO','OOOOOOOOOO'],
-  note:['YYYYYY','YOOYYY','YOOOOY','YOOYYY','YYYYYY'],
-  bench:['TTTTTTTTTTTTTTTT','tTTTTTTTTTTTTTTt','t..............t','TTTTTTTTTTTTTTTT','tttttttttttttttt','.t............t.','.t............t.'],
-  flowers:['..P...Y....P....','.PPP.YYY..PPP...','..G...G....G....','gGGggGGGggGGgggg'],
-  bin:['.OOOOOO.','OBBBBBBO','OBBOBBBO','OBBOBBBO','OBBOBBBO','OBBBBBBO','.OOOOOO.'],
-  lamp:['..YYYY..','.OYYYYO.','..OOOO..','...TT...','...TT...','...TT...','...TT...','...TT...','...TT...','..TTTT..'],
-  wifi:['..OOOOOOO..','.O.......O.','...OOOOO...','..O.....O..','.....O.....','....OOO....','.....O.....'],
-  sweat:['..C..','.CCC.','CCCCC','.CCC.'],
-  heart:['.PP.PP.','PPPPPPP','.PPPPP.','..PPP..','...P...']
-};
-function drawProp(ctx, name, x, y, scale = 2) {
-  drawPixelGrid(ctx, PROP_TILES[name], PROP_PALETTE, x, y, scale);
 }

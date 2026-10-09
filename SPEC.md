@@ -29,6 +29,9 @@ FILE STRUCTURE
 - /js/terminal.js (reusable fake terminal engine)
 - /js/bosses.js (the bosses)
 - /js/sprites.js (pixel sprite data)
+- /js/scenery.js (pixel drawing toolkit, tiny font, emotes, cat, time-of-day palettes)
+- /js/settings.js (the places: campus, classroom, lab, server room, dorm, cafe, defense room)
+- /js/scene.js (wide animated scene engine, plus the title, character and ending stages)
 - /js/audio.js
 
 START SCREEN AND CHARACTER
@@ -250,3 +253,17 @@ WORKING RULES
   4. Remaining bosses (1, 2, 4A, 4B)
   5. Sprites for both characters, sound, and polish
 - Do not add features beyond this spec without asking.
+
+VISUAL POLISH (added after the first build; story text, effects and questions are untouched)
+- Still plain HTML, CSS, vanilla JavaScript and canvas. No new tools or libraries.
+  Extra Google fonts: "Pixelify Sans" (story text) and "VT323" (terminal look).
+- The game scene is a wide canvas (96 logical pixels tall, scaled by whole numbers) with the HUD on top
+  of it. The dialog sits below it, and the page must never need scrolling to reach the options.
+- Walking: parallax layers on the campus; rooms slide past with a door frame between places.
+- Every event has a place (EVENT_SCENES and BOSS_SCENES in events.js): campus, classroom, lab,
+  server room, dorm, cafe or defense room, plus a dialog theme:
+  social (cream box), paper (exams, lined sheet) or terminal (code and sysadmin, with ">").
+- Title screen: two students and a cat walk through the four school years (outfit and time of day change).
+- Character screen: live preview, boy/girl cards, and the four looks.
+- Ending screen: your student at sunset with weather or confetti that matches the ending.
+- Number keys 1-4 (or A-D on exam questions) pick the matching option.

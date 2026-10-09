@@ -44,7 +44,7 @@ const el = {
   eventPanel: document.getElementById('eventPanel'),
   endingPanel: document.getElementById('endingPanel'),
   mutedButton: document.getElementById('muteButton'),
-  previewCanvas: document.getElementById('characterPreview'),
+  lookStrip: document.getElementById('lookStrip'),
   sceneCanvas: document.getElementById('sceneCanvas'),
   eventDialog: document.getElementById('eventDialog')
 };
@@ -160,9 +160,11 @@ function setupStatsHUD() {
   Object.keys(STAT_DETAILS).forEach(key => {
     const item = document.createElement('div');
     item.className = 'stat-item';
-    item.innerHTML = '<button type="button" class="stat-button" id="stat-' + key + '" aria-expanded="false" aria-describedby="statTooltip">' +
+    item.innerHTML = '<button type="button" class="stat-button" id="stat-' + key + '" data-stat="' + key + '" aria-expanded="false" aria-describedby="statTooltip">' +
       '<canvas class="stat-icon" width="36" height="36" aria-hidden="true"></canvas>' +
-      '<span class="stat-bar" aria-hidden="true"><span class="stat-fill"></span></span></button>';
+      '<span class="stat-meter" aria-hidden="true"><span class="stat-name">' + STAT_DETAILS[key][0] + '</span>' +
+      '<span class="stat-bar"><span class="stat-fill"></span></span></span>' +
+      '<span class="stat-value" aria-hidden="true">50</span></button>';
     el.statsContainer.appendChild(item);
     const button = item.querySelector('button');
     drawStatIcon(item.querySelector('canvas'), key);
@@ -188,6 +190,8 @@ function updateStatsDisplay() {
     button.setAttribute('aria-label', STAT_DETAILS[key][0] + ': ' + value + '/100');
     const fill = button.querySelector('.stat-fill');
     fill.style.width = value + '%';
+    button.querySelector('.stat-value').textContent = value;
+    button.classList.toggle('low', value <= 20);
     const difference = value - (displayedStats[key] ?? value);
     if (difference && GAME_STATE.screen === 'game') {
       const float = document.createElement('span');
@@ -230,13 +234,24 @@ function renderEffectIcons(container, effects) {
 function updateNameAndYear() {
   el.playerNameDisplay.textContent = GAME_STATE.player.name;
   el.yearDisplay.textContent = GAME_STATE.player.year;
-  document.getElementById('sceneYearLabel').textContent = CAMPUS_THEMES[GAME_STATE.player.year].name;
   el.gameScreen.dataset.year = GAME_STATE.player.year;
   campusScene.draw();
 }
 
+// Character screen: the two pick cards, and the four looks your student wears over the years.
 function renderCharacterPreview() {
-  renderCharacterSprite(el.previewCanvas, GAME_STATE.player.gender, 1, false);
+  document.querySelectorAll('.pick-card canvas').forEach(canvas => renderCharacterSprite(canvas, canvas.dataset.gender, 1, false));
+  if (!el.lookStrip.children.length) {
+    ['Freshman', 'Sophomore', 'Junior', 'Senior'].forEach((label, index) => {
+      const cell = document.createElement('figure');
+      cell.innerHTML = '<canvas width="48" height="68" aria-hidden="true"></canvas><figcaption></figcaption>';
+      cell.querySelector('figcaption').textContent = 'Y' + (index + 1) + ' ' + label;
+      el.lookStrip.appendChild(cell);
+    });
+  }
+  el.lookStrip.querySelectorAll('canvas').forEach((canvas, index) => renderCharacterSprite(canvas, GAME_STATE.player.gender, index + 1, false));
+  const count = document.getElementById('nameCount');
+  if (count) count.textContent = el.playerNameInput.value.length + '/12';
 }
 
 function setScreen(name) {
@@ -264,6 +279,10 @@ function setScreen(name) {
     target.classList.add('active');
   }
   GAME_STATE.screen = name;
+  document.body.dataset.screen = name;
+  if (name === 'start') titleStage.start(); else titleStage.stop();
+  if (name === 'character') characterStage.start(); else characterStage.stop();
+  if (name !== 'ending' && endingStage) { endingStage.stop(); endingStage = null; }
   if (name !== 'game') { campusScene.cancel(); closeEventDialog(); }
   else campusScene.resize();
   if (name === 'ending') saveProgress();
@@ -375,13 +394,15 @@ function renderQuestionEvent(event) {
     GAME_STATE.activeQuestion = saved;
   }
 
-  el.eventPanel.innerHTML = '<div class="event-header"><h3></h3><span></span></div>' +
+  el.eventPanel.innerHTML = '<div class="dialog-reading"><div class="paper-head"><span class="paper-name"></span><span>Year ' + GAME_STATE.player.year + '</span></div>' +
+    '<div class="event-header"><h3></h3><span></span></div>' +
     '<div class="event-description"></div><div class="question-text"></div>' +
-    '<div class="skill-options"></div>' +
-    '<div class="answer-feedback hidden" id="questionFeedback" role="status"></div>' +
-    '<button type="button" class="hidden" id="nextQuestionButton">Continue</button>';
+    '<div class="answer-feedback hidden" id="questionFeedback" role="status"></div></div>' +
+    '<div class="dialog-actions"><div class="skill-options"></div>' +
+    '<button type="button" class="hidden" id="nextQuestionButton">Continue</button></div>';
   el.eventPanel.querySelector('h3').textContent = event.title;
-  el.eventPanel.querySelector('.event-header span').textContent = 'Name: ' + GAME_STATE.player.name;
+  el.eventPanel.querySelector('.paper-name').textContent = 'Name: ' + GAME_STATE.player.name;
+  el.eventPanel.querySelector('.event-header span').textContent = 'Skill check';
   el.eventPanel.querySelector('.event-description').textContent = event.description;
   // textContent preserves code, punctuation, and angle brackets in the supplied questions.
   el.eventPanel.querySelector('.question-text').textContent = question.question;
@@ -407,7 +428,9 @@ function renderQuestionEvent(event) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'skill-button';
-    button.textContent = String.fromCharCode(65 + saved.order.indexOf(index)) + '. ' + question.options[index];
+    button.innerHTML = '<span class="opt-key"></span><span class="opt-text"></span>';
+    button.querySelector('.opt-key').textContent = String.fromCharCode(65 + saved.order.indexOf(index));
+    button.querySelector('.opt-text').textContent = question.options[index];
     button.addEventListener('click', () => {
       if (saved.selected !== null) return;
       finishTypewriter();
@@ -416,7 +439,7 @@ function renderQuestionEvent(event) {
       if (correct) soundEngine.success(); else soundEngine.fail();
       const droppedOut = applyStatEffects(correct ? {skill: 10} : {grades: -5});
       saveProgress();
-      if (!droppedOut) showFeedback();
+      if (!droppedOut) { showFeedback(); campusScene.react(correct ? 'happy' : 'sad'); }
     });
     buttons.push({button, index});
     optionsRoot.appendChild(button);
@@ -434,10 +457,19 @@ function renderChoiceEvent(event) {
   const saved = GAME_STATE.activeChoice?.eventId === event.id
     ? GAME_STATE.activeChoice : {eventId: event.id, selected: null};
   GAME_STATE.activeChoice = saved;
-  el.eventPanel.innerHTML = '<div class="event-header"><h3></h3><span></span></div>' +
-    '<div class="event-description"></div><div class="choice-list"></div>' +
-    '<div id="choiceEffects" class="hidden" role="status"></div>' +
-    '<button id="nextChoiceButton" type="button" class="hidden">Continue</button>';
+  el.eventPanel.innerHTML = '<div class="dialog-reading"><div class="event-header"><h3></h3><span></span></div>' +
+    '<div class="term-lines"></div>' +
+    '<div class="event-description"></div>' +
+    '<div id="choiceEffects" class="hidden" role="status"></div></div>' +
+    '<div class="dialog-actions"><div class="choice-list"></div>' +
+    '<button id="nextChoiceButton" type="button" class="hidden">Continue</button></div>';
+  const flavour = getEventScene({type: 'event', event}).term;
+  if (flavour) {   // a few real-looking terminal lines for the technical situations
+    const lines = el.eventPanel.querySelector('.term-lines');
+    [['student@campus:~$ ' + flavour.cmd, 'cmd'], ...flavour.out.map(text => [text, 'out'])].forEach(([text, kind]) => {
+      const line = document.createElement('div'); line.className = 'term-line ' + kind; line.textContent = text; lines.appendChild(line);
+    });
+  }
   el.eventPanel.querySelector('h3').textContent = event.title;
   el.eventPanel.querySelector('.event-header span').textContent = 'Year ' + GAME_STATE.player.year;
   el.eventPanel.querySelector('.event-description').textContent = event.description.replace(/\{\{name\}\}/g, GAME_STATE.player.name);
@@ -457,7 +489,9 @@ function renderChoiceEvent(event) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'choice-button';
-    button.textContent = choice.label;
+    button.innerHTML = '<span class="opt-key"></span><span class="opt-text"></span>';
+    button.querySelector('.opt-key').textContent = index + 1;
+    button.querySelector('.opt-text').textContent = choice.label;
     button.addEventListener('click', () => {
       if (saved.selected !== null) return;
       finishTypewriter();
@@ -465,7 +499,10 @@ function renderChoiceEvent(event) {
       soundEngine.click();
       const droppedOut = applyStatEffects(choice.effects);
       saveProgress();
-      if (!droppedOut) showResult();
+      if (!droppedOut) {
+        showResult();
+        campusScene.react(Object.values(choice.effects).reduce((sum, amount) => sum + amount, 0) >= 0 ? 'happy' : 'sad');
+      }
     });
     choices.appendChild(button);
   });
@@ -484,22 +521,27 @@ function renderBossLogic() {
 
   const round = state.rounds[state.currentRound];
   const markup = `
-    <div class="boss-panel">
+    <div class="dialog-reading boss-panel">
+      <div class="paper-head"><span>Name: ${GAME_STATE.player.name}</span><span>Midterm exam</span></div>
       <div class="boss-header">
         <h3>${boss.title}</h3>
         <span>Round ${state.currentRound + 1}/${state.totalRounds}</span>
       </div>
-      <div class="boss-bar"><div class="boss-bar-fill" style="width:${state.bossHealth}%"></div></div>
-      <div class="time-bar"><div class="time-bar-fill" style="width:${state.timeLeft / state.maxTime * 100}%"></div></div>
+      <div class="boss-meters">
+        <label>Exam boss<div class="boss-bar"><div class="boss-bar-fill" style="width:${state.bossHealth}%"></div></div></label>
+        <label>Time left<div class="time-bar"><div class="time-bar-fill" style="width:${state.timeLeft / state.maxTime * 100}%"></div></div></label>
+      </div>
       <div class="logic-card">
-        <strong>${round.question}</strong>
+        <strong class="question-text">${round.question}</strong>
         <div class="logic-grid">
           ${Object.entries(round.inputs).map(([label, value]) => `<div><span>${label} = ${value ? '1' : '0'}</span></div>`).join('')}
         </div>
       </div>
-      <div class="choice-list">
-        ${round.options.map((option) => `
-          <button class="action-button logic-answer" type="button" data-option="${option}">${option}</button>
+    </div>
+    <div class="dialog-actions">
+      <div class="choice-list skill-options">
+        ${round.options.map((option, index) => `
+          <button class="action-button skill-button logic-answer" type="button" data-option="${option}"><span class="opt-key">${'ABCD'[index]}</span><span class="opt-text">${option}</span></button>
         `).join('')}
       </div>
     </div>
@@ -645,7 +687,7 @@ function renderNextStoryItem() {
 }
 
 function beginGame() {
-  campusScene.cancel();
+  campusScene.reset();
   displayedStats = {};
   GAME_STATE.travelling = false;
   GAME_STATE.activeChoice = null;
@@ -672,13 +714,12 @@ function showEnding(options = {}) {
   GAME_STATE.travelling = false;
   const result = options.final ? { endingTrigger: options.trigger } : null;
   const ending = getEndingForStats(GAME_STATE.player.stats, result);
-  const sceneCharacter = GAME_STATE.player.gender || 'boy';
-  const paragraph = ending.text.replace(/\{\{name\}\}/g, GAME_STATE.player.name);
+    const paragraph = ending.text.replace(/\{\{name\}\}/g, GAME_STATE.player.name);
 
   const markup = `
     <h2>${ending.title}</h2>
     <div class="ending-paragraph">${paragraph}</div>
-    <canvas class="pixel-scene" id="endingSpriteCanvas" width="144" height="204" role="img" aria-label="Your graduating character"></canvas>
+    <div class="ending-stage" id="endingHost"><canvas id="endingCanvas" role="img" aria-label="Your student at the end of the four years"></canvas></div>
     <div class="stat-summary">
       <div>Grades: ${GAME_STATE.player.stats.grades}</div>
       <div>Sanity: ${GAME_STATE.player.stats.sanity}</div>
@@ -692,8 +733,9 @@ function showEnding(options = {}) {
   `;
 
   el.endingPanel.innerHTML = markup;
-  renderCharacterSprite(document.getElementById('endingSpriteCanvas'), sceneCharacter, 4, ending.title.includes('Dropout') || ending.title.includes('Defended') || ending.title.includes('Burned'));
   setScreen('ending');
+  endingStage = createEndingStage(document.getElementById('endingCanvas'), document.getElementById('endingHost'), () => GAME_STATE.player, () => ending.id);
+  endingStage.start();
 
   document.getElementById('playAgainButton').addEventListener('click', () => {
     GAME_STATE.player.name = 'Student';
@@ -725,6 +767,7 @@ function setupEvents() {
   document.querySelectorAll('input[name="character"]').forEach((radio) => {
     radio.addEventListener('change', (event) => {
       GAME_STATE.player.gender = event.target.value;
+      characterStage.poke('player'); soundEngine.pop();
       renderCharacterPreview();
     });
   });
@@ -764,8 +807,7 @@ function advanceStory(resume = false) {
     saveProgress();
     showYearTransition(() => campusScene.travel(arrive));
   } else if (resume) {
-    campusScene.cancel();
-    campusScene.npcEntrance = 1;
+    campusScene.show(next);
     arrive();
   } else {
     GAME_STATE.travelling = true;
@@ -806,18 +848,6 @@ function showYearTransition(onContinue) {
   soundEngine.levelUp();
 }
 
-// Separate reading and actions so the choices do not disappear below a tall scene.
-function arrangeEventPanel() {
-  if (!el.eventPanel.querySelector('.choice-list, .skill-options')) return;
-  const reading=document.createElement('div');reading.className='dialog-reading';
-  const actions=document.createElement('div');actions.className='dialog-actions';
-  [...el.eventPanel.children].forEach(node=>{
-    if(node.matches('.event-header, .event-description, .question-text'))reading.appendChild(node);
-    else actions.appendChild(node);
-  });
-  el.eventPanel.appendChild(reading);el.eventPanel.appendChild(actions);
-}
-
 let typewriterTimer = null;
 let completeTypewriter = null;
 function finishTypewriter() {
@@ -851,6 +881,7 @@ function typeDialogText(node) {
   tick();
 }
 function closeEventDialog() {
+  campusScene.setCompact(false);
   finishTypewriter();
   el.eventDialog.classList.add('hidden');
 }
@@ -859,235 +890,34 @@ function openEventDialog() {
   const speaker = item?.type === 'boss' ? 'System' : item?.event.type === 'skill' ? 'Instructor' : GAME_STATE.player.name;
   document.getElementById('dialogSpeaker').textContent = speaker;
   el.eventDialog.classList.remove('hidden');
-  el.eventPanel.classList.toggle('exam-sheet', item?.event?.type === 'skill');
-  el.eventPanel.classList.toggle('terminal-event', item?.type === 'boss' && item.bossId !== 'logicGateMidterm');
-  arrangeEventPanel();
+  const theme = getEventScene(item).theme;
+  el.eventDialog.dataset.theme = theme;
+  campusScene.setCompact(item?.type === 'boss' && item.bossId !== 'logicGateMidterm');
   document.getElementById('sceneStatus').textContent = item?.type === 'boss' ? 'Challenge in progress' : 'Make your choice';
-  typeDialogText(el.eventPanel.querySelector('.event-description'));
+  // Exam paper shows the question straight away; the other boxes type their story out.
+  if (theme !== 'paper') typeDialogText(el.eventPanel.querySelector('.event-description'));
   el.eventDialog.focus({preventScroll: true});
 }
 
-// Three tile layers plus the fastest ground layer. Offsets wrap at their tile periods.
-class CampusScene {
-  constructor(canvas) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
-    this.viewport = document.getElementById('sceneViewport');
-    this.scene = {room:'courtyard', npcs:[]};
-    this.npcEntrance = 0;
-    this.sceneTime = 0;
-    this.width = 320;
-    this.scale = 1;
-    this.distance = 0;
-    this.clock = 0;
-    this.walkClock = 0;
-    this.speed = 0;
-    this.mode = 'idle';
-    this.elapsed = 0;
-    this.onArrival = null;
-    this.lastTime = null;
-    this.resize();
-    window.addEventListener('resize', () => this.resize());
-    document.addEventListener('visibilitychange', () => { this.lastTime = null; });
-    requestAnimationFrame(time => this.frame(time));
-  }
-  resize() {
-    const available = this.viewport.clientWidth || 960;
-    this.scale = Math.max(1, Math.min(3, Math.floor(available / 220)));
-    const heightBudget = window.innerWidth >= 900 ? Math.max(144, window.innerHeight - 250) : Math.min(180, window.innerHeight * 0.23);
-    this.scale = Math.max(1, Math.min(this.scale, Math.floor(heightBudget / 144)));
-    this.width = Math.max(1, Math.floor(available / this.scale));
-    this.canvas.width = this.width * this.scale;
-    this.canvas.height = 144 * this.scale;
-    this.canvas.style.width = this.canvas.width + 'px';
-    this.canvas.style.height = this.canvas.height + 'px';
-    this.draw();
-  }
-  travel(onArrival) {
-    this.onArrival = onArrival;
-    this.elapsed = 0;
-    this.speed = 0;
-    this.mode = 'walking';
-    document.getElementById('sceneStatus').textContent = 'Walking to the next event…';
-  }
-  cancel() {
-    this.mode = 'idle';
-    this.speed = 0;
-    this.onArrival = null;
-  }
-  update(dt) {
-    this.clock += dt;
-    this.sceneTime += dt;
-    if (this.mode === 'walking') {
-      this.elapsed += dt;
-      this.speed = Math.min(1, this.elapsed / 0.4);
-      if (this.elapsed >= (spriteMotion.matches ? 0.1 : 2.4)) {
-        this.mode = 'stopping';
-        this.elapsed = 0;
-      }
-    } else if (this.mode === 'stopping') {
-      this.elapsed += dt;
-      this.speed = Math.max(0, 1 - this.elapsed / 0.65);
-      if (this.speed === 0 || spriteMotion.matches) {
-        this.mode = 'entering';
-        this.speed = 0;
-        this.npcEntrance = spriteMotion.matches ? 1 : 0;
-        this.sceneTime = 0;
-      }
-    }
-    if (this.mode === 'entering') {
-      this.npcEntrance = Math.min(1, this.npcEntrance + dt / 0.75);
-      if (this.npcEntrance >= 1) {
-        this.mode = 'idle';
-        const callback = this.onArrival;
-        this.onArrival = null;
-        if (callback) callback();
-      }
-    }
-    if (!spriteMotion.matches) {
-      this.distance = (this.distance + dt * this.speed * 40) % 122880;
-      this.walkClock += dt * this.speed;
-    }
-  }
-  frame(time) {
-    const dt = this.lastTime === null ? 0 : Math.min((time - this.lastTime) / 1000, 0.05);
-    this.lastTime = time;
-    if (!document.hidden && GAME_STATE.screen === 'game') {
-      this.update(dt);
-      this.draw();
-    }
-    requestAnimationFrame(next => this.frame(next));
-  }
-  repeat(period, ratio, draw) {
-    const offset = Math.floor(this.distance * ratio) % period;
-    for (let x = -period - offset; x < this.width + period; x += period) draw(x);
-  }
-  draw() {
-    const ctx = this.ctx;
-    const theme = CAMPUS_THEMES[GAME_STATE.player.year] || CAMPUS_THEMES[1];
-    ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0);
-    ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = theme.sky;
-    ctx.fillRect(0, 0, this.width, 144);
-    ctx.fillStyle = theme.horizon;
-    ctx.fillRect(0, 70, this.width, 50);
-    if (this.scene.room !== 'courtyard') {
-      this.drawRoom();
-      this.drawCast();
-      return;
-    }
-    // Layer 1: sky/clouds. Stars and a moon replace the sun at night.
-    this.repeat(256, 0.125, x => {
-      if (GAME_STATE.player.year === 4) {
-        [[20, 16], [89, 33], [152, 12], [221, 47]].forEach(([sx, sy]) =>
-          drawPixelGrid(ctx, CAMPUS_TILES.star, theme, x + sx, sy));
-      }
-      drawPixelGrid(ctx, CAMPUS_TILES.cloud, theme, x + 38, 25, 2);
-      drawPixelGrid(ctx, CAMPUS_TILES.cloud, theme, x + 183, 52, 1);
-    });
-    ctx.fillStyle = theme.W;
-    ctx.fillRect(this.width - 48, 16, 16, 16);
-    ctx.fillRect(this.width - 50, 20, 20, 8);
-    if (GAME_STATE.player.year === 4) {
-      ctx.fillStyle = theme.sky;
-      ctx.fillRect(this.width - 42, 14, 14, 15);
-    }
-    // Layer 2: school blocks with a clock, tiled windows and entrances.
-    this.repeat(240, 0.25, x => {
-      drawPixelGrid(ctx, CAMPUS_TILES.school, theme, x + 15, 62, 2);
-      drawPixelGrid(ctx, CAMPUS_TILES.school, theme, x + 132, 50, 2);
-    });
-    ctx.fillStyle = theme.grass;
-    ctx.fillRect(0, 108, this.width, 16);
-    // Layer 3: fence and trees, faster than the distant buildings.
-    this.repeat(32, 0.5, x => drawPixelGrid(ctx, CAMPUS_TILES.fence, theme, x, 105, 2));
-    this.repeat(160, 0.5, x => drawPixelGrid(ctx, CAMPUS_TILES.tree, theme, x + 5, 69, 3));
-    // Ground repeats at a matching pixel boundary; no seams or interpolated edges.
-    this.repeat(32, 1, x => drawPixelGrid(ctx, CAMPUS_TILES.path, theme, x, 124, 2));
-    this.repeat(192, 0.5, x => {
-      drawProp(ctx, 'bench', x + 64, 107, 2);
-      drawProp(ctx, 'flowers', x + 14, 116, 2);
-      drawProp(ctx, 'bin', x + 106, 105, 2);
-      drawProp(ctx, 'lamp', x + 144, 87, 3);
-    });
-    if (this.scene.banner) {
-      ctx.fillStyle = '#f6d0a4'; ctx.fillRect(12, 40, 92, 16);
-      ctx.fillStyle = '#66506b'; ctx.font = 'bold 8px monospace'; ctx.fillText(this.scene.banner, 23, 51);
-    }
-    this.drawCast();
-  }
-  configure(item) {
-    this.scene = getEventScene(item);
-    this.npcEntrance = 0;
-    this.sceneTime = 0;
-    document.getElementById('sceneYearLabel').textContent = ({courtyard:'Campus courtyard', classroom:'Classroom', lab:'Computer lab', nightDesk:'Late-night study desk', panel:'Defense room'})[this.scene.room];
-  }
-  drawRoom() {
-    const ctx = this.ctx;
-    const night = this.scene.room === 'nightDesk';
-    ctx.fillStyle = night ? '#615978' : '#eddfc9'; ctx.fillRect(0,0,this.width,144);
-    ctx.fillStyle = night ? '#4c485f' : '#b9cabb'; ctx.fillRect(0,82,this.width,30);
-    ctx.fillStyle = '#be947d';ctx.fillRect(0,112,this.width,32);
-    ctx.fillStyle = '#a77b69';
-    for(let y=115;y<144;y+=9) {ctx.fillRect(0,y,this.width,1);for(let x=(y%2)*16;x<this.width;x+=32)ctx.fillRect(x,y,1,9);}
-    // Window, sill, a classroom board, bookshelves and a wall clock.
-    ctx.fillStyle='#9c7a6a';ctx.fillRect(14,18,54,47);
-    ctx.fillStyle=night?'#2e3557':CAMPUS_THEMES[GAME_STATE.player.year].sky;ctx.fillRect(17,21,48,40);
-    ctx.fillStyle='#f5e9cc';ctx.fillRect(39,21,3,40);ctx.fillRect(17,39,48,3);ctx.fillRect(11,64,60,4);
-    drawProp(ctx,'clock',this.width-28,14,2);
-    ctx.fillStyle='#b98f86';ctx.fillRect(this.width-66,36,24,27);
-    ctx.fillStyle='#f4d7a5';ctx.fillRect(this.width-64,38,20,23);
-    ctx.fillStyle='#84ac9d';ctx.fillRect(this.width-61,42,14,3);ctx.fillRect(this.width-61,48,10,2);
-    drawProp(ctx,'plant',12,94,2);
-    drawProp(ctx,'shelf',this.width-34,84,2);
-    if(this.scene.room==='classroom'||this.scene.room==='panel') {
-      drawProp(ctx,'board',Math.floor(this.width/2)-32,24,2);
-      drawProp(ctx,'desk',30,98,2);drawProp(ctx,'chair',34,92,2);
-      drawProp(ctx,'desk',this.width-84,98,2);drawProp(ctx,'chair',this.width-80,91,2);
-      drawProp(ctx,'shelf',80,62,2);
-      drawProp(ctx,'plant',this.width-65,81,2);
-    } else {
-      const deskX=Math.floor(this.width/2)-60;
-      drawProp(ctx,'desk',deskX,102,3);
-      drawProp(ctx,'computer',deskX+5,76,3);
-      drawProp(ctx,'coffee',deskX+38,94,1);
-      drawProp(ctx,'shelf',76,54,2);
-      if(this.scene.prop==='router')drawProp(ctx,'router',deskX+41,92,2);
-      if(this.scene.prop==='note')drawProp(ctx,'note',deskX+31,78,1);
-    }
-  }
-  drawCast() {
-    const ctx=this.ctx;
-    const group=this.scene.npcs || [];
-    const playerX=group.length>=3 ? 16 : Math.floor(this.width/2)-48;
-    const walking=this.speed>0.05&&!spriteMotion.matches;
-    const frame=spriteMotion.matches?0:walking?Math.floor(this.walkClock*7)%4:Math.floor(this.clock/0.55)%2;
-    drawScenePlayer(ctx,GAME_STATE.player.gender,GAME_STATE.player.year,playerX,61,walking,frame);
-    if(this.mode==='idle'||this.mode==='entering') {
-      group.forEach((id,index)=>{
-        const scale=2;
-        const target=group.length>=3 ? 62+index*Math.min(50,Math.floor((this.width-110)/Math.max(1,group.length-1))) : Math.min(this.width-54,playerX+64);
-        const x=Math.round(target+(this.width-target)*(1-this.npcEntrance));
-        ctx.save();
-        if(this.scene.ghost&&this.mode==='idle')ctx.globalAlpha=Math.max(0,1-this.sceneTime/2.5);
-        drawNPC(ctx,this.scene.ghost&&this.sceneTime>0.8?'ghost':id,x,scale===1?94:61,scale,Math.floor(this.clock*5)%4,this.mode==='entering');
-        ctx.restore();
-      });
-      if(this.scene.room==='panel') {
-        ctx.fillStyle='#bd8a74';ctx.fillRect(70,115,Math.min(138,this.width-78),9);
-        ctx.fillStyle='#7e6165';ctx.fillRect(76,124,5,10);ctx.fillRect(Math.min(195,this.width-14),124,5,10);
-      }
-      if(this.scene.prop==='wifi')drawProp(ctx,'wifi',playerX+12,43,2);
-      if(this.scene.prop==='sweat')drawProp(ctx,'sweat',Math.min(this.width-15,playerX+91),61,1);
-      if(this.scene.exam && GAME_STATE.activeQuestion?.selected !== null && GAME_STATE.activeQuestion?.selected !== undefined) {
-        drawProp(ctx,'heart',Math.min(this.width-24,playerX+79),43,2);
-      }
-    }
-    this.canvas.setAttribute('aria-label',this.scene.room+': '+GAME_STATE.player.name+(walking?' walking':' with '+group.map(id=>NPC_SPRITES[id].label).join(', ')));
-  }
-}
+const campusScene = new WorldScene(el.sceneCanvas);
 
-const campusScene = new CampusScene(el.sceneCanvas);
+// Animated stages for the title and character screens (the ending stage is created when needed).
+let endingStage = null;
+const titleStage = createTitleStage(document.getElementById('titleCanvas'), document.getElementById('titleHost'), phase => {
+  document.querySelectorAll('.year-pips span').forEach((pip, index) => pip.classList.toggle('on', index === phase));
+});
+const characterStage = createCharacterStage(document.getElementById('characterCanvas'), document.getElementById('characterHost'), () => GAME_STATE.player);
+
+// Number keys pick the matching option: 1-4 (or A-D on exam questions).
+document.addEventListener('keydown', event => {
+  if (GAME_STATE.screen !== 'game' || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.target.closest('input, textarea')) return;
+  const key = event.key.toLowerCase();
+  const buttons = [...el.eventPanel.querySelectorAll('.choice-button, .skill-button')];
+  let index = '1234'.indexOf(key);
+  if (index < 0 && el.eventPanel.querySelector('.skill-button')) index = 'abcd'.indexOf(key);
+  if (key.length === 1 && index >= 0 && buttons[index] && !buttons[index].disabled) buttons[index].click();
+});
 
 setupEvents();
 showStartScreen();
